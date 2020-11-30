@@ -8,6 +8,7 @@ import android.content.Intent
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
+import com.fintek.upload_sdk.model.Config
 import com.fintek.upload_sdk.model.UserAuthInfo
 import com.fintek.upload_sdk.network.ApiService
 import com.fintek.upload_sdk.network.RetrofitHelper
@@ -28,9 +29,12 @@ import okhttp3.RequestBody.Companion.toRequestBody
 class UploadService : IntentService("Upload"), CoroutineScope by MainScope() {
 
     companion object {
-
         @JvmStatic
-        fun startService(context: Context) {
+        fun startService(context: Context, block: Config.() -> Unit) {
+            val config = Config()
+            block.invoke(config)
+
+            UploadUtils.setConfig(config)
             val intent = Intent(context, UploadService::class.java)
             context.startService(intent)
         }
