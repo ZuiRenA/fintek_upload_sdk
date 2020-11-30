@@ -39,9 +39,9 @@ object EstimateUtils {
             parameter["gaid"] = UploadUtils.sharedPreferences.getString("gaid", "") ?: ""
             parameter["androidId"] = DeviceUtils.getAndroidId()
             parameter["mac"] = MacUtils.getMacAddress()
-            parameter["remoteAddr"] = getIp()
+            parameter["remoteAddr"] = NetworkUtils.getIpIgnorePublicIp()
             parameter["storageTotalSize"] = "${StorageUtils.getTotalSize()}byte"
-            parameter["storageAdjustedTotalSize"] = "${getTotalInternalMemorySize()}Byte"
+            parameter["storageAdjustedTotalSize"] = "${StorageUtils.getAdjustSize()}Byte"
             parameter["storageAvailableSize"] = "${StorageUtils.getAvailableSize()}Byte"
             parameter["sdCardTotalSize"] = SDCardUtils.getTotalSize().toString()
             parameter["sdCardAvailableSize"] = SDCardUtils.getAvailableSize().toString()
@@ -49,12 +49,12 @@ object EstimateUtils {
             parameter["isRoot"] = DeviceUtils.isRoot().toString()
             parameter["isLocServiceEnable"] = LocationUtils.isLocationServiceEnable().toString()
             parameter["isNetwork"] = NetworkUtils.isConnected().toString()
-            parameter["language"] = LanguageUtils.getCurrentLocale()?.language ?: ""
-            parameter["hardware"] = Hardware().toJson()
-            parameter["generalData"] = GeneralData().toJson()
-            parameter["battery"] = Battery().toJson()
-            parameter["network"] = Network().toJson()
-            parameter["storage"] = Storage().toJson()
+            parameter["language"] = LanguageUtils.getCurrentLocale().language ?: ""
+            parameter["hardware"] = Hardware.create().toJson()
+            parameter["generalData"] = GeneralData.create().toJson()
+            parameter["battery"] = Battery.create().toJson()
+            parameter["network"] = Network.create().toJson()
+            parameter["storage"] = Storage.create().toJson()
         } catch (e: Exception) {
             e.printStackTrace()
         } catch (t: Throwable) {
@@ -63,76 +63,6 @@ object EstimateUtils {
 
         return parameter
     }
-
-    /**
-     * 获取公网ip地址
-     */
-    private fun getIp(): String {
-        val publicNetIp: String = ""
-        if ("" != publicNetIp) {
-            return publicNetIp
-        }
-        val wifiIp = getWifiIp()
-        val gprsIP = getGprsIp()
-        var ip = "0.0.0.0"
-        if (wifiIp != 0) {
-            ip = wifiIp.toIp()
-        } else if (!TextUtils.isEmpty(gprsIP)) {
-            ip = gprsIP
-        }
-        return ip
-    }
-
-    /**
-     * 获取wifi ip
-     */
-    private fun getWifiIp(): Int { // 获取wifi服务
-        val wifiManager =
-            UploadUtils.requiredContext.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        // 判断wifi是否开启
-        if (!wifiManager.isWifiEnabled) {
-            //wifiManager.setWifiEnabled(true);
-            return 0
-        }
-        val wifiInfo = wifiManager.connectionInfo
-        return wifiInfo.ipAddress
-    }
-
-    /**
-     * 获取gprs ip
-     */
-    private fun getGprsIp(): String {
-        try {
-            val en = NetworkInterface.getNetworkInterfaces()
-            while (en.hasMoreElements()) {
-                val networkInterface = en.nextElement()
-                val addresses =
-                    networkInterface.inetAddresses
-                while (addresses.hasMoreElements()) {
-                    val inetAddress = addresses.nextElement()
-                    if (!inetAddress.isLoopbackAddress) {
-                        return inetAddress.hostAddress.toString()
-                    }
-                }
-            }
-        } catch (e: SocketException) {
-            e.printStackTrace()
-        }
-        return ""
-    }
-
-    private fun getTotalInternalMemorySize(): Long {
-        val path = Environment.getDataDirectory()
-        val stat = StatFs(path.path)
-        val blockSize = stat.blockSize.toLong()
-        val totalBlocks = stat.blockCount.toLong()
-        return totalBlocks * blockSize
-    }
-
-    private fun Int.toIp(): String = (this and 0xFF).toString() + "." +
-            (this shr 8 and 0xFF) + "." +
-            (this shr 16 and 0xFF) + "." +
-            (this shr 24 and 0xFF)
 
     private fun Any?.toJson(): String = Gson().toJson(this)
 }
