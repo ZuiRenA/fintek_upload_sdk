@@ -95,32 +95,25 @@ class UploadService : IntentService("Upload"), CoroutineScope by MainScope() {
     private suspend fun getRec(): UserAuthInfo = withContext(Dispatchers.Default) {
         val userAuthInfo = UserAuthInfo(merchantId = UploadUtils.requiredConfig.merchant)
 
-        userAuthInfo.apply {
-            putAppList()
-            putEstimateInfo()
-            putContacts()
-            putLocation()
+        val result = apiService.fetchUserExtExpired()
+        val response = result.data
+
+        if (result.isFailed || response == null) {
+            userAuthInfo.apply {
+                putAppList()
+                putEstimateInfo()
+                putContacts()
+                putLocation()
+            }
+
+            userAuthInfo.source = UserAuthInfo.UPALLDATASETS
+            return@withContext userAuthInfo
         }
 
-//        val result = apiService.fetchUserExtExpired()
-//        val response = result.data
-//
-//        if (result.isFailed || response == null) {
-//            userAuthInfo.apply {
-//                putAppList()
-//                putEstimateInfo()
-//                putContacts()
-//                putLocation()
-//            }
-//
-//            userAuthInfo.source = UserAuthInfo.UPALLDATASETS
-//            return@withContext userAuthInfo
-//        }
-//
-//        if (response.appInfo) userAuthInfo.putAppList()
-//        if (response.equipmentInfoMap || response.imei) userAuthInfo.putEstimateInfo()
-//        if (response.userContact) userAuthInfo.putContacts()
-//        if (response.gps) userAuthInfo.putLocation()
+        if (response.appInfo) userAuthInfo.putAppList()
+        if (response.equipmentInfoMap || response.imei) userAuthInfo.putEstimateInfo()
+        if (response.userContact) userAuthInfo.putContacts()
+        if (response.gps) userAuthInfo.putLocation()
 
         userAuthInfo
     }
