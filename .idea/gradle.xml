@@ -5,15 +5,17 @@
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
         <option name="testRunner" value="PLATFORM" />
+        <option name="disableWrapperSourceDistributionNotification" value="true" />
         <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="gradleHome" value="$PROJECT_DIR$/../../workSoft/gradle/gradle-2.14.1-all/gradle-2.14.1" />
+        <option name="gradleHome" value="$PROJECT_DIR$/../../../workSoft/gradle/gradle-2.14.1-all/gradle-2.14.1" />
         <option name="gradleJvm" value="1.8" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/upload_sdk" />
+            <option value="$PROJECT_DIR$/example" />
+            <option value="$PROJECT_DIR$/utils_androidx" />
+            <option value="$PROJECT_DIR$/utils_webview" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

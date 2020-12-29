@@ -1,8 +1,20 @@
 <component name="ProjectDictionaryState">
   <dictionary name="admin">
     <words>
+      <w>bssid</w>
+      <w>coord</w>
+      <w>fintek</w>
       <w>gaid</w>
-      <w>okhttp</w>
+      <w>gprs</w>
+      <w>gson</w>
+      <w>imei</w>
+      <w>imsi</w>
+      <w>inet</w>
+      <w>keepattributes</w>
+      <w>pkcs</w>
+      <w>smartisan</w>
+      <w>ssid</w>
+      <w>wlan</w>
     </words>
   </dictionary>
 </component>

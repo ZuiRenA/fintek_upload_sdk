@@ -1,3 +1,4 @@
-include ':upload_sdk'
-include ':app'
-rootProject.name = "SupermarketUtils"
+include ':utils_webview'
+include ':utils_androidx'
+include ':example'
+rootProject.name = "Utils"
