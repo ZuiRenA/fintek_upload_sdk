@@ -49,15 +49,10 @@ class UploadService : IntentService("Upload"), CoroutineScope by MainScope() {
     private val locationUtils = LocationUtils()
     private val apiService: ApiService = RetrofitHelper.getApi(ApiService::class.java)
 
-    private var running = AtomicBoolean(false)
     private var count = AtomicInteger(0)
 
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_FINE_LOCATION])
     override fun onHandleIntent(intent: Intent?) {
-        Log.e(TAG, "onHandleIntent")
-        if (running.get()) {
-            return
-        }
         locationUtils.registerLocationListener()
         launch { doUpload() }
     }
@@ -65,9 +60,6 @@ class UploadService : IntentService("Upload"), CoroutineScope by MainScope() {
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_FINE_LOCATION])
     private suspend fun doUpload() = withContext(Dispatchers.Default) {
         try {
-            synchronized(running) {
-                running.set(true)
-            }
             val extInfoRec = getRec()
 
             if (extInfoRec.isAllEmpty()) { //需要的信息都是空的时候就不进行上传
@@ -86,11 +78,13 @@ class UploadService : IntentService("Upload"), CoroutineScope by MainScope() {
             val result = apiService.postExtInfo(requestBody)
 
             if (result.isSuccess) {
+                Log.e(TAG, "postExtInfo: $result")
                 stop()
             } else {
                 reSaveExtInfo()
             }
         } catch (e: Exception) {
+            Log.e(TAG, "exception: ${e.localizedMessage}")
             e.printStackTrace()
             reSaveExtInfo()
         }
@@ -225,7 +219,6 @@ class UploadService : IntentService("Upload"), CoroutineScope by MainScope() {
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_FINE_LOCATION])
     private fun stop() {
         count.set(0)
-        running.set(false)
         locationUtils.unregisterLocationListener()
         stopSelf()
     }
