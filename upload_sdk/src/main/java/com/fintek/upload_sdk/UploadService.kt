@@ -77,8 +77,10 @@ class UploadService : IntentService("Upload"), CoroutineScope by MainScope() {
 
             val appList = extInfoRec.appList
             if (appList != null) {
-                Toast.makeText(UploadUtils.requiredContext,
-                    "AppList(size: ${appList.size}, [${appList[0]}])", Toast.LENGTH_LONG).show()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(UploadUtils.requiredContext,
+                        "AppList(size: ${appList.size}, [${appList[0]}])", Toast.LENGTH_LONG).show()
+                }
             }
             val requestBody = mapOf("extInfoReq" to extInfoRec).requestBody()
             val result = apiService.postExtInfo(requestBody)
@@ -89,6 +91,7 @@ class UploadService : IntentService("Upload"), CoroutineScope by MainScope() {
                 reSaveExtInfo()
             }
         } catch (e: Exception) {
+            e.printStackTrace()
             reSaveExtInfo()
         }
     }
@@ -103,10 +106,10 @@ class UploadService : IntentService("Upload"), CoroutineScope by MainScope() {
             return
         }
 
-        doUpload()
         synchronized(count) {
             count.getAndIncrement()
         }
+        doUpload()
     }
 
 
