@@ -1,4 +1,3 @@
-include ':utils_webview'
-include ':utils_androidx'
-include ':example'
+include ':app'
+include ':upload_sdk'
 rootProject.name = "Utils"

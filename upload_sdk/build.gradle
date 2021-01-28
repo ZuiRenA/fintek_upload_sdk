@@ -43,7 +43,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.8"
-    implementation 'com.github.ZuiRenA.fintek_android_sdk:utils_androidx:release-1.0.3'
+    implementation 'com.github.ZuiRenA.fintek_android_sdk:utils_androidx:release-2.0.3'
 
     // 网络请求
     implementation 'com.squareup.okhttp3:okhttp:4.7.2'

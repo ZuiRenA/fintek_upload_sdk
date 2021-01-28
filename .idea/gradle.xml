@@ -13,9 +13,8 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/example" />
-            <option value="$PROJECT_DIR$/utils_androidx" />
-            <option value="$PROJECT_DIR$/utils_webview" />
+            <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/upload_sdk" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

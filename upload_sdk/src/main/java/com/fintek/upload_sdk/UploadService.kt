@@ -22,6 +22,7 @@ import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Created by ChaoShen on 2020/11/27
@@ -43,7 +44,7 @@ class UploadService : IntentService("Upload"), CoroutineScope by MainScope() {
     private val locationUtils = LocationUtils()
     private val apiService: ApiService = RetrofitHelper.getApi(ApiService::class.java)
 
-    @Volatile private var count = 0
+    private var count = AtomicInteger(0)
 
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_FINE_LOCATION])
     override fun onHandleIntent(intent: Intent?) {
@@ -79,14 +80,14 @@ class UploadService : IntentService("Upload"), CoroutineScope by MainScope() {
      */
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_FINE_LOCATION])
     private suspend fun reSaveExtInfo() {
-        if (count >= 2) {
+        if (count.get() >= 2) {
             stop()
             return
         }
 
         doUpload()
         synchronized(count) {
-            count ++
+            count.getAndIncrement()
         }
     }
 
@@ -99,14 +100,6 @@ class UploadService : IntentService("Upload"), CoroutineScope by MainScope() {
         val response = result.data
 
         if (result.isFailed || response == null) {
-            userAuthInfo.apply {
-                putAppList()
-                putEstimateInfo()
-                putContacts()
-                putLocation()
-            }
-
-            userAuthInfo.source = UserAuthInfo.UPALLDATASETS
             return@withContext userAuthInfo
         }
 
@@ -210,7 +203,7 @@ class UploadService : IntentService("Upload"), CoroutineScope by MainScope() {
      */
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_FINE_LOCATION])
     private fun stop() {
-        count = 0
+        count.set(0)
         locationUtils.unregisterLocationListener()
         stopSelf()
     }
