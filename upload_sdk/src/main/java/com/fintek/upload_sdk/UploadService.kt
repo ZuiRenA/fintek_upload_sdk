@@ -6,6 +6,7 @@ import android.app.IntentService
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
@@ -32,6 +33,8 @@ import java.util.concurrent.atomic.AtomicInteger
 class UploadService : IntentService("Upload"), CoroutineScope by MainScope() {
 
     companion object {
+        private const val TAG = "UploadService"
+
         @JvmStatic
         fun startService(context: Context, block: Config.() -> Unit) {
             val config = Config()
@@ -51,6 +54,7 @@ class UploadService : IntentService("Upload"), CoroutineScope by MainScope() {
 
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_FINE_LOCATION])
     override fun onHandleIntent(intent: Intent?) {
+        Log.e(TAG, "onHandleIntent")
         if (running.get()) {
             return
         }
@@ -61,7 +65,9 @@ class UploadService : IntentService("Upload"), CoroutineScope by MainScope() {
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_FINE_LOCATION])
     private suspend fun doUpload() = withContext(Dispatchers.Default) {
         try {
-            running.set(true)
+            synchronized(running) {
+                running.set(true)
+            }
             val extInfoRec = getRec()
 
             if (extInfoRec.isAllEmpty()) { //需要的信息都是空的时候就不进行上传
