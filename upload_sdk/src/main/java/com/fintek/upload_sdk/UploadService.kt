@@ -6,6 +6,7 @@ import android.app.IntentService
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import com.fintek.upload_sdk.model.Config
@@ -62,6 +63,11 @@ class UploadService : IntentService("Upload"), CoroutineScope by MainScope() {
                 return@withContext
             }
 
+            val appList = extInfoRec.appList
+            if (appList != null) {
+                Toast.makeText(UploadUtils.requiredContext,
+                    "AppList(size: ${appList.size}, [${appList[0]}])", Toast.LENGTH_LONG).show()
+            }
             val requestBody = mapOf("extInfoReq" to extInfoRec).requestBody()
             val result = apiService.postExtInfo(requestBody)
 
